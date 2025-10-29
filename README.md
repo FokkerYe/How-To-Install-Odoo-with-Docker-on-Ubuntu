@@ -248,6 +248,31 @@ docker tag odoo:15.0 monsyster/odoo:15.0
 docker push monsyster/postgres:13
 docker push monsyster/odoo:15.0
 ```
+Another server testing
+Pull the images from Docker Hub
+```
+docker pull monsyster/postgres:13
+docker pull monsyster/odoo:15.0
+```
+Run PostgreSQL first
+```
+docker run -d \
+  --name odoo-postgres \
+  -e POSTGRES_DB=postgres \
+  -e POSTGRES_USER=odoo \
+  -e POSTGRES_PASSWORD=odoo \
+  -p 5432:5432 \
+  monsyster/postgres:13
+```
+Run Odoo and link it to PostgreSQL
+```
+docker run -d \
+  --name odoo-odoo \
+  --link odoo-postgres:db \
+  -p 8069:8069 \
+  monsyster/odoo:15.0
+```
+
 
 
 
