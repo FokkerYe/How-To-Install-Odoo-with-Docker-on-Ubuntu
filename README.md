@@ -273,6 +273,19 @@ docker run -d \
   monsyster/odoo:15.0
 ```
 
+If you want these containers to persist data even if you remove them, you should use volumes:
+```
+docker run -d \
+  --name odoo-postgres \
+  -e POSTGRES_DB=postgres \
+  -e POSTGRES_USER=odoo \
+  -e POSTGRES_PASSWORD=odoo \
+  -v pgdata:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  monsyster/postgres:13
+
+```
+
 
 
 
