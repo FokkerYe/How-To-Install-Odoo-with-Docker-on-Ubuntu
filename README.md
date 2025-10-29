@@ -239,6 +239,16 @@ user link call
 
 ![loginodoo](loginodoo.PNG)
 
+#uplaod to docker hub
+
+```
+docker login
+docker tag postgres:13 monsyster/postgres:13
+docker tag odoo:15.0 monsyster/odoo:15.0
+docker push monsyster/postgres:13
+docker push monsyster/odoo:15.0
+```
+
 
 
 
