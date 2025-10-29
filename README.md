@@ -44,7 +44,7 @@ volumes:
 Open a new .env file with nano:
 ```
 POSTGRES_DB=postgres
-POSTGRES_PASSWORD=Asd123!@#2o24
+POSTGRES_PASSWORD=enter_your_db_password
 POSTGRES_USER=odoo
 PGDATA=/var/lib/postgresql/data/pgdata
 
@@ -72,6 +72,8 @@ user link call
 http://your_server_ip:8069
 ```
 ![testodoo](testodoo.PNG)
+
+# install and nginx configuration
 
 
 
