@@ -119,7 +119,123 @@ Installing Certbot and Setting Up TLS Certificates
 ```
 sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d testodoo.ayk.asia
+
+sudo nano /etc/nginx/sites-available/odoo.conf
+
+
+# /etc/nginx/sites-available/odoo.conf
+# Replace BACKEND_IP with 127.0.0.1 if Odoo runs locally, otherwise keep the remote IP.
+# Example: set BACKEND_IP 127.0.0.1;
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name testodoo.ayk.asia;
+    # Redirect all HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name testodoo.ayk.asia;
+
+    access_log  /var/log/nginx/odoo.access.log;
+    error_log   /var/log/nginx/odoo.error.log;
+
+    # SSL managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/testodoo.ayk.asia/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/testodoo.ayk.asia/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Recommended limits
+    client_max_body_size 200M;
+    keepalive_timeout 65;
+
+    # Proxy to Odoo main workers (adjust BACKEND_IP if needed)
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_read_timeout 720s;
+        proxy_connect_timeout 30s;
+        proxy_send_timeout 120s;
+
+        proxy_buffering off;
+        proxy_redirect off;
+
+        proxy_pass http://127.0.0.1:8069;   # <-- change to http://4.194.120.115:8069 if backend is remote
+    }
+
+    # Odoo longpolling (if you run the longpolling service on 8072)
+    location /longpolling {
+        proxy_pass http://127.0.0.1:8072;   # <-- change if remote
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
+
+        proxy_buffering off;
+        proxy_read_timeout 720s;
+    }
+
+    # Optional: static files (if Odoo exposes static assets via /web/static)
+    # Let Odoo serve them via proxy (keep it simple) — you can add caching here later.
+    location ~* /web/static/ {
+        proxy_cache_valid 200 60m;
+        proxy_buffering on;
+        proxy_pass http://127.0.0.1:8069;
+        proxy_set_header Host $host;
+    }
+
+    # Optional security header - enable HSTS only if you're ready to enforce HTTPS
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+}
+
 ```
+
+```
+docker compose down
+```
+
+```
+nano .env
+```
+
+```
+POSTGRES_DB=postgres
+POSTGRES_PASSWORD=enter_your_password
+POSTGRES_USER=odoo
+PGDATA=/var/lib/postgresql/data/pgdata
+
+HOST=postgres
+USER=odoo
+PASSWORD=enter_your_password
+ODOO_PROXY_MODE=True
+
+
+```
+```
+docker compose up -d
+systemctl nginx -t 
+systemctl relaod nginx
+```
+
 
 
 
