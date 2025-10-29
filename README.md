@@ -74,6 +74,55 @@ http://your_server_ip:8069
 ![testodoo](testodoo.PNG)
 
 # install and nginx configuration
+packet update and nginx install 
+```
+sudo apt update
+sudo apt install nginx
+```
+open up a new Nginx configuration file in the /etc/nginx/sites-available directory. We’ll call ours odoo.conf but you could use a different name:
+```
+sudo nano /etc/nginx/sites-available/odoo.conf
+```
+```
+server {
+    listen       80;
+    listen       [::]:80;
+    server_name  your_domain_here;
+
+    access_log  /var/log/nginx/odoo.access.log;
+    error_log   /var/log/nginx/odoo.error.log;
+
+    location / {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_pass http://localhost:8069;
+  }
+}
+```
+
+Save and close the file, then enable the configuration by linking it into /etc/nginx/sites-enabled/:
+```
+sudo ln -s /etc/nginx/sites-available/odoo.conf /etc/nginx/sites-enabled/
+```
+### Go to your domain portal on dns A record added your server ip and domain ip mapping
+
+```
+root@testodoo:~# sudo nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@testodoo:~#
+
+```
+Installing Certbot and Setting Up TLS Certificates
+```
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d testodoo.ayk.asia
+```
+
+
+
 
 
 
